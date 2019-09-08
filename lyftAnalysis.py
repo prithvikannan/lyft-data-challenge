@@ -67,4 +67,8 @@ def create_driver_profile(driver_id):
     profile = pd.DataFrame(values, index=c, columns=['Data'])
     return (profile)
 
-print(create_driver_profile('002be0ffdc997bd5c50703158b7c2491'))
+def show_all_driver_profiles(): 
+    for id in driver_ids['driver_id']:
+        print(create_driver_profile(id))
+
+# print(create_driver_profile('002be0ffdc997bd5c50703158b7c2491'))

@@ -48,6 +48,9 @@ def get_ride_length(id):
 
 def create_driver_profile(driver_id):
     all_rides = get_all_rides(driver_id)
+    onboard_event = driver_ids[driver_ids['driver_id'] == driver_id]   
+    onboard_date = str(onboard_event['driver_onboard_date'])
+    print(onboard_date)
     # print(all_rides)
     number_of_rides = len(all_rides)
     average_ride_duration = all_rides['ride_duration'].mean()
@@ -67,8 +70,8 @@ def create_driver_profile(driver_id):
     else:
         average_ride_revenue = 0
 
-    values = [driver_id, number_of_rides, average_ride_distance/1609.34, average_ride_duration/60.0, percentage_of_prime_rides, total_revenue, average_ride_revenue]
-    c = ['Driver ID', 'Number of Rides', 'Average Ride Distance in Miles', 'Average Ride Duration in Minutes',
+    values = [driver_id, onboard_date, number_of_rides, average_ride_distance/1609.34, average_ride_duration/60.0, percentage_of_prime_rides, total_revenue, average_ride_revenue]
+    c = ['Driver ID', 'Driver Onbard Date', 'Number of Rides', 'Average Ride Distance in Miles', 'Average Ride Duration in Minutes',
          'Percentage of Prime Rides: ', 'Total Revenue: ', 'Average Ride Revenue']
     profile = pd.DataFrame(values, index=c, columns=['Data'])
     return (profile)

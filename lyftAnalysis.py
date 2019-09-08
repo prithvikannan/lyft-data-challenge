@@ -48,18 +48,24 @@ def get_ride_length(id):
 
 def create_driver_profile(driver_id):
     all_rides = get_all_rides(driver_id)
-    print(all_rides)
+    # print(all_rides)
     number_of_rides = len(all_rides)
     average_ride_duration = all_rides['ride_duration'].mean()
     average_ride_distance = all_rides['ride_distance'].mean()
 
-
-    percentage_of_prime_rides = 100 * len(all_rides[all_rides['ride_prime_time'] != 0]) / len(all_rides)
+    if (len(all_rides) != 0):
+        percentage_of_prime_rides = 100 * len(all_rides[all_rides['ride_prime_time'] != 0]) / len(all_rides)
+    else:
+        percentage_of_prime_rides = 0
+        
     total_revenue = 0
     for id in all_rides['ride_id']:
         total_revenue += revenue_from_ride(str(id))
 
-    average_ride_revenue = total_revenue/len(all_rides)
+    if (len(all_rides) != 0):
+        average_ride_revenue = total_revenue/len(all_rides)
+    else:
+        average_ride_revenue = 0
 
     values = [driver_id, number_of_rides, average_ride_distance/1609.34, average_ride_duration/60.0, percentage_of_prime_rides, total_revenue, average_ride_revenue]
     c = ['Driver ID', 'Number of Rides', 'Average Ride Distance in Miles', 'Average Ride Duration in Minutes',
@@ -72,3 +78,4 @@ def show_all_driver_profiles():
         print(create_driver_profile(id))
 
 # print(create_driver_profile('002be0ffdc997bd5c50703158b7c2491'))
+show_all_driver_profiles()

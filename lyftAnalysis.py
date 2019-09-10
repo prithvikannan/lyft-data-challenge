@@ -5,7 +5,6 @@ from datetime import datetime
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
 
-
 driver_ids = pd.read_csv('driver_ids.csv')
 ride_ids = pd.read_csv('ride_ids.csv')
 ride_timestamps = pd.read_csv('ride_timestamps.csv')
@@ -15,12 +14,35 @@ def get_all_rides(driver_id):
     driver_rides = ride_ids[ride_ids['driver_id'] == driver_id]
     return (driver_rides)
 
+week_start_dates = ['2016-03-28',
+'2016-04-04',
+'2016-04-11',
+'2016-04-18',
+'2016-04-25',
+'2016-05-02',
+'2016-05-09',
+'2016-05-16',
+'2016-05-23',
+'2016-05-30',
+'2016-06-06',
+'2016-06-13',
+'2016-06-20',
+'2016-06-27']
+
+def categorize_ride_by_week(date_of_ride):
+    for i, date in enumerate(week_start_dates):
+        if date_of_ride < date:
+            return i
+    if date == '2016-06-27':
+        return 13
+
+
 def revenue_from_ride(ride_id):
     ride = ride_ids[ride_ids['ride_id'] == ride_id]
     if len(ride) == 0:
         print('ERROR RIDE NOT FOUND')
     ride = ride.reset_index(drop=True)
-    miles_traveled = ride.loc[0, 'ride_distance'] / 1609.34 #meters to miles conversion
+    miles_traveled = ride.loc[0, 'ride_distance'] / 1609.34  # meters to miles conversion
     minutes_elapsed = ride.loc[0, 'ride_duration'] / 60.0
     revenue = miles_traveled * 1.15 + minutes_elapsed * 0.22 + 2.00 + 1.75
     prime_time = ride.loc[0, 'ride_prime_time']
@@ -34,8 +56,9 @@ def revenue_from_ride(ride_id):
 
     return revenue
 
-#returns ride length in seconds
-#nvm im a dumbass they already give us this lol
+
+# returns ride length in seconds
+# nvm im a dumbass they already give us this lol
 def get_ride_length(id):
     oneride = ride_timestamps[ride_timestamps['ride_id'] == id]
     oneride = oneride.set_index(oneride['event'])
@@ -43,42 +66,90 @@ def get_ride_length(id):
     end_time = oneride.loc['dropped_off_at', 'timestamp'][11:]
     format = '%H:%M:%S'
     tdelta = datetime.strptime(end_time, format) - datetime.strptime(start_time, format)
-    return(tdelta.total_seconds())
+    return (tdelta.total_seconds())
 
 
 def create_driver_profile(driver_id):
     all_rides = get_all_rides(driver_id)
-    onboard_event = driver_ids[driver_ids['driver_id'] == driver_id]   
-    onboard_date = str(onboard_event['driver_onboard_date'])
-    print(onboard_date)
-    # print(all_rides)
+    onboard_event = driver_ids[driver_ids['driver_id'] == driver_id]
+    onboard_date = str(onboard_event.iloc[0,1])
+    length = len(onboard_date)
+    onboard_date = (onboard_date[length - 19: length - 9])
     number_of_rides = len(all_rides)
     average_ride_duration = all_rides['ride_duration'].mean()
     average_ride_distance = all_rides['ride_distance'].mean()
 
-    if (len(all_rides) != 0):
-        percentage_of_prime_rides = 100 * len(all_rides[all_rides['ride_prime_time'] != 0]) / len(all_rides)
+    if (number_of_rides != 0):
+        percentage_of_prime_rides = 100 * len(all_rides[all_rides['ride_prime_time'] != 0]) / number_of_rides
     else:
         percentage_of_prime_rides = 0
-        
+
     total_revenue = 0
     for id in all_rides['ride_id']:
         total_revenue += revenue_from_ride(str(id))
 
-    if (len(all_rides) != 0):
-        average_ride_revenue = total_revenue/len(all_rides)
+    if (number_of_rides != 0):
+        average_ride_revenue = total_revenue / number_of_rides
     else:
         average_ride_revenue = 0
 
-    values = [driver_id, onboard_date, number_of_rides, average_ride_distance/1609.34, average_ride_duration/60.0, percentage_of_prime_rides, total_revenue, average_ride_revenue]
-    c = ['Driver ID', 'Driver Onbard Date', 'Number of Rides', 'Average Ride Distance in Miles', 'Average Ride Duration in Minutes',
-         'Percentage of Prime Rides: ', 'Total Revenue: ', 'Average Ride Revenue']
-    profile = pd.DataFrame(values, index=c, columns=['Data'])
-    return (profile)
+    rides_per_week = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    for id in all_rides['ride_id']:
+        specific_ride = ride_timestamps[ride_timestamps['ride_id'] == id]
+        if specific_ride.empty:
+            print('Could not find ride ' + str(id) + ' for driver ' + str(driver_id) + ' in ride_timestamps')
+            continue
+        date = specific_ride.iloc[3, 2][:11]
+        week_number = categorize_ride_by_week(date)
+        rides_per_week[week_number - 1] += 1
 
-def show_all_driver_profiles(): 
-    for id in driver_ids['driver_id']:
-        print(create_driver_profile(id))
 
-# print(create_driver_profile('002be0ffdc997bd5c50703158b7c2491'))
+
+    values = [driver_id, onboard_date, number_of_rides, average_ride_distance / 1609.34, average_ride_duration / 60.0,
+              percentage_of_prime_rides, total_revenue, average_ride_revenue]
+
+    for num in rides_per_week:
+        values.append(num)
+    return (values)
+
+
+def show_all_driver_profiles():
+    profiles = []
+    for i, id in enumerate(driver_ids['driver_id']):
+        print(i)
+        profiles.append(create_driver_profile(id))
+
+
+    c = ['Driver ID', 'Driver Onboard Date', 'Number of Rides', 'Average Ride Distance in Miles',
+         'Average Ride Duration in Minutes', 'Percentage of Prime Rides: ', 'Total Revenue: ', 'Average Ride Revenue',
+         'Week 1 Rides', 'Week 2 Rides', 'Week 3 Rides','Week 4 Rides','Week 5 Rides','Week 6 Rides','Week 7 Rides',
+         'Week 8 Rides','Week 9 Rides', 'Week 10 Rides','Week 11 Rides','Week 12 Rides', 'Week 13 Rides']
+    x = ['Driver ID', 'Driver Onboard Date', 'Number of Rides', 'Average Ride Distance in Miles',
+         'Average Ride Duration in Minutes', 'Percentage of Prime Rides: ', 'Total Revenue: ', 'Average Ride Revenue']
+    final = pd.DataFrame(profiles, columns=c)
+    final = final.fillna(0)
+    print(final)
+
+    final.to_csv('allCalculatedDataWithWeeklyRidesDistributions.csv')
+
+#print(create_driver_profile('002be0ffdc997bd5c50703158b7c2491'))
 show_all_driver_profiles()
+
+
+'136b51093f684e15e2798e4dc1e23d0c'
+'1696be121baad60c7ca8a1c8164b24ad'
+'1cf6fa07dcec364af2acf257b2d3731e'
+'23d3a2d0f6732d106fbc3d6079ac018d'
+'2c00d6d77281fb9f97c1eb711f39b08d'
+'4bbf15c7280e29c1df6edd7bf6dfa56a'
+'4fc9091d4e900a41a207ee32a639d658'
+'53b03eb76e7c0e268c027a6868b9394c'
+'794a74f41f18a115252fd26bbd16882b'
+'818ce9e1cee09531cb20bdffe3f41256'
+'93be171268b14a0586c48cb488bbd5cb'
+'aee6c0de9d4b4e14d92bce9e4a352748'
+'b794fc307d1309b3405361f9ea4e8b1b'
+'cada138c65391fd98c1835e5c518397d'
+'da984ad859c4b4349544b580d532ec5a'
+'e127911975277f6b07fb2521647e1031'
+'e45936982498bfe7a8fcfef62bf1edc8'

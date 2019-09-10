@@ -136,6 +136,7 @@ def show_all_driver_profiles():
 show_all_driver_profiles()
 
 
+#list of drivers that do not have all of their rides listed in ride_timestamps
 '136b51093f684e15e2798e4dc1e23d0c'
 '1696be121baad60c7ca8a1c8164b24ad'
 '1cf6fa07dcec364af2acf257b2d3731e'

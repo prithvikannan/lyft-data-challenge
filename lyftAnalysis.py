@@ -9,7 +9,6 @@ driver_ids = pd.read_csv('driver_ids.csv')
 ride_ids = pd.read_csv('ride_ids.csv')
 ride_timestamps = pd.read_csv('ride_timestamps.csv')
 
-
 def get_all_rides(driver_id):
     driver_rides = ride_ids[ride_ids['driver_id'] == driver_id]
     return (driver_rides)
@@ -58,7 +57,7 @@ def revenue_from_ride(ride_id):
 
 
 # returns ride length in seconds
-# nvm im a dumbass they already give us this lol
+# nvm they already give us this lol
 def get_ride_length(id):
     oneride = ride_timestamps[ride_timestamps['ride_id'] == id]
     oneride = oneride.set_index(oneride['event'])
@@ -113,7 +112,7 @@ def create_driver_profile(driver_id):
     return (values)
 
 
-def show_all_driver_profiles():
+def create_all_driver_profiles():
     profiles = []
     for i, id in enumerate(driver_ids['driver_id']):
         print(i)
@@ -133,7 +132,7 @@ def show_all_driver_profiles():
     final.to_csv('allCalculatedDataWithWeeklyRidesDistributions.csv')
 
 #print(create_driver_profile('002be0ffdc997bd5c50703158b7c2491'))
-show_all_driver_profiles()
+#show_all_driver_profiles()
 
 
 #list of drivers that do not have all of their rides listed in ride_timestamps
@@ -154,3 +153,49 @@ show_all_driver_profiles()
 'da984ad859c4b4349544b580d532ec5a'
 'e127911975277f6b07fb2521647e1031'
 'e45936982498bfe7a8fcfef62bf1edc8'
+
+
+#returns -1 for first and last ride weeks if no rides found
+def first_last_ride_weeks(driver_id):
+    all_rides = get_all_rides(driver_id)
+    ride_weeks = []
+    for id in all_rides['ride_id']:
+        specific_ride = ride_timestamps[ride_timestamps['ride_id'] == id]
+        if specific_ride.empty:
+            print('Could not find ride ' + str(id) + ' for driver ' + str(driver_id) + ' in ride_timestamps')
+            continue
+        date = specific_ride.iloc[3, 2][:11]
+        week_number = categorize_ride_by_week(date)
+        ride_weeks.append(week_number)
+
+    if ride_weeks.__len__() == 0:
+        return (-1,-1)
+    first_ride_week = min(ride_weeks)
+    last_ride_week = max(ride_weeks)
+    return (first_ride_week, last_ride_week)
+
+def first_last_all_drivers():
+    rides_list = []
+    for i, id in enumerate(driver_ids['driver_id']):
+        first, last = first_last_ride_weeks(id)
+        rides_list.append((first, last, id))
+        print(i)
+
+
+    rides_df = pd.DataFrame(data=rides_list, columns = ['First Ride Week', 'Last Ride Week', 'Driver ID'])
+    rides_df.to_csv('FirstAndLastRideWeekData.csv')
+
+def load_dataset():
+    data = pd.read_csv('allCalculatedDataWithWeeklyRidesDistributions.csv')
+    print(data)
+
+data = pd.read_csv('allCalculatedDataWithWeeklyRidesDistributions.csv')
+rides = pd.read_csv('FirstAndLastRideWeekData.csv')
+
+data['First Ride Week'] = rides['First Ride Week']
+data['Last Ride Week'] = rides['Last Ride Week']
+
+
+print(data)
+
+data.to_csv('CompleteFinalCalculatedData.csv')

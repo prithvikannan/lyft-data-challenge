@@ -189,13 +189,42 @@ def load_dataset():
     data = pd.read_csv('allCalculatedDataWithWeeklyRidesDistributions.csv')
     print(data)
 
-data = pd.read_csv('allCalculatedDataWithWeeklyRidesDistributions.csv')
-rides = pd.read_csv('FirstAndLastRideWeekData.csv')
+def get_number_of_days_driven(driver_id):
+    all_rides = get_all_rides(driver_id)
+    all_dates = []
+    for id in all_rides['ride_id']:
+        specific_ride = ride_timestamps[ride_timestamps['ride_id'] == id]
+        if specific_ride.empty:
+            print('Could not find ride ' + str(id) + ' for driver ' + str(driver_id) + ' in ride_timestamps')
+            continue
+        date = specific_ride.iloc[3, 2][:11]
+        if date not in all_dates:
+            all_dates.append(date)
 
-data['First Ride Week'] = rides['First Ride Week']
-data['Last Ride Week'] = rides['Last Ride Week']
+    return all_dates.__len__()
+
+def number_of_days_driven_all_drivers():
+    days_driven_list = []
+    for i, id in enumerate(driver_ids['driver_id']):
+        days = get_number_of_days_driven(id)
+        days_driven_list.append((days, id))
+        print(i)
 
 
-print(data)
 
-data.to_csv('CompleteFinalCalculatedData.csv')
+    rides_df = pd.DataFrame(data=days_driven_list, columns = ['Number of Days Driven', 'Driver ID'])
+    print(rides_df)
+    rides_df.to_csv('daysDrivenData.csv')
+
+number_of_days_driven_all_drivers()
+
+# data = pd.read_csv('allCalculatedDataWithWeeklyRidesDistributions.csv')
+# rides = pd.read_csv('FirstAndLastRideWeekData.csv')
+#
+# data['First Ride Week'] = rides['First Ride Week']
+# data['Last Ride Week'] = rides['Last Ride Week']
+#
+#
+# print(data)
+#
+# data.to_csv('CompleteFinalCalculatedData.csv')

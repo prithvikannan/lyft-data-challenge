@@ -216,15 +216,13 @@ def number_of_days_driven_all_drivers():
     print(rides_df)
     rides_df.to_csv('daysDrivenData.csv')
 
-number_of_days_driven_all_drivers()
+#number_of_days_driven_all_drivers()
 
-# data = pd.read_csv('allCalculatedDataWithWeeklyRidesDistributions.csv')
-# rides = pd.read_csv('FirstAndLastRideWeekData.csv')
-#
-# data['First Ride Week'] = rides['First Ride Week']
-# data['Last Ride Week'] = rides['Last Ride Week']
-#
-#
-# print(data)
-#
-# data.to_csv('CompleteFinalCalculatedData.csv')
+data = pd.read_csv('CompleteFinalCalculatedData.csv')
+rides = pd.read_csv('daysDrivenData.csv')
+
+data['Number of Days Driven'] = rides['Number of Days Driven']
+
+print(data)
+
+data.to_csv('CompleteFinalCalculatedData.csv')

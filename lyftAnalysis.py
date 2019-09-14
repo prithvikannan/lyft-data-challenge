@@ -218,11 +218,53 @@ def number_of_days_driven_all_drivers():
 
 #number_of_days_driven_all_drivers()
 
-data = pd.read_csv('CompleteFinalCalculatedData.csv')
-rides = pd.read_csv('daysDrivenData.csv')
 
-data['Number of Days Driven'] = rides['Number of Days Driven']
+def ride_time_distribution(driver_id):
+    all_rides = get_all_rides(driver_id)
+    zones = [0,0,0,0]
+    for id in all_rides['ride_id']:
+        specific_ride = ride_timestamps[ride_timestamps['ride_id'] == id]
+        if specific_ride.empty:
+            print('Could not find ride ' + str(id) + ' for driver ' + str(driver_id) + ' in ride_timestamps')
+            continue
+        time = specific_ride.iloc[3, 2][11:]
+        zones[categorize_time(time)] +=1
 
-print(data)
+    total = all_rides.__len__()
+    for i, val in enumerate(zones):
+        if total == 0:
+            zones.append(0)
+            if i == 3: break
+            continue
+        zones.append(val/total)
+        if i == 3: break
+    return (zones)
 
-data.to_csv('CompleteFinalCalculatedData.csv')
+
+def categorize_time(time):
+    if time >= '00:00:00' and time < '05:00:00' or time >= '23:00:00' and time <= '24:00:00':
+        return 0
+    if time >= '05:00:00' and time < '11:00:00':
+        return 1
+    if time >= '11:00:00' and time < '17:00:00':
+        return 2
+    if time >= '17:00:00' and time < '23:00:00':
+        return 3
+
+def categorize_time_all_drivers():
+    zones_list = []
+    for i, id in enumerate(driver_ids['driver_id']):
+        zones = ride_time_distribution(id)
+        zones.append(id)
+        zones_list.append(zones)
+        print(i)
+
+
+
+
+    rides_df = pd.DataFrame(data=zones_list, columns = ['Total Late Night', 'Total Morning', 'Total Day', 'Total Night', 'Percent Late Night', 'Percent Morning', 'Percent Day', 'Percent Night', 'Driver ID'])
+    print(rides_df)
+    rides_df.to_csv('ridetimecategorization.csv')
+
+
+categorize_time_all_drivers()

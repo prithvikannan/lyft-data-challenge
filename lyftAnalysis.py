@@ -2,6 +2,8 @@ import pandas as pd
 
 from datetime import datetime
 
+#All data calculated from this code can be found in 'LyftDataFinal.csv'
+
 pd.set_option('display.max_columns', None)
 pd.set_option('display.expand_frame_repr', False)
 
@@ -131,9 +133,6 @@ def create_all_driver_profiles():
 
     final.to_csv('allCalculatedDataWithWeeklyRidesDistributions.csv')
 
-#print(create_driver_profile('002be0ffdc997bd5c50703158b7c2491'))
-#show_all_driver_profiles()
-
 
 #list of drivers that do not have all of their rides listed in ride_timestamps
 '136b51093f684e15e2798e4dc1e23d0c'
@@ -174,6 +173,7 @@ def first_last_ride_weeks(driver_id):
     last_ride_week = max(ride_weeks)
     return (first_ride_week, last_ride_week)
 
+# runs the above function for every driver
 def first_last_all_drivers():
     rides_list = []
     for i, id in enumerate(driver_ids['driver_id']):
@@ -185,10 +185,7 @@ def first_last_all_drivers():
     rides_df = pd.DataFrame(data=rides_list, columns = ['First Ride Week', 'Last Ride Week', 'Driver ID'])
     rides_df.to_csv('FirstAndLastRideWeekData.csv')
 
-def load_dataset():
-    data = pd.read_csv('allCalculatedDataWithWeeklyRidesDistributions.csv')
-    print(data)
-
+#calculates the number of days a single driver drove
 def get_number_of_days_driven(driver_id):
     all_rides = get_all_rides(driver_id)
     all_dates = []
@@ -203,6 +200,7 @@ def get_number_of_days_driven(driver_id):
 
     return all_dates.__len__()
 
+#find the number of days a single driver drove for every driver
 def number_of_days_driven_all_drivers():
     days_driven_list = []
     for i, id in enumerate(driver_ids['driver_id']):
@@ -210,15 +208,11 @@ def number_of_days_driven_all_drivers():
         days_driven_list.append((days, id))
         print(i)
 
-
-
     rides_df = pd.DataFrame(data=days_driven_list, columns = ['Number of Days Driven', 'Driver ID'])
     print(rides_df)
     rides_df.to_csv('daysDrivenData.csv')
 
-#number_of_days_driven_all_drivers()
-
-
+#finds during what times of day a driver drives.
 def ride_time_distribution(driver_id):
     all_rides = get_all_rides(driver_id)
     zones = [0,0,0,0]
@@ -234,23 +228,25 @@ def ride_time_distribution(driver_id):
     for i, val in enumerate(zones):
         if total == 0:
             zones.append(0)
-            if i == 3: break
+            if i == 3:
+                break
             continue
         zones.append(val/total)
         if i == 3: break
     return (zones)
 
-
+#categorizes a given time into late night, morning, day, or night
 def categorize_time(time):
     if time >= '00:00:00' and time < '05:00:00' or time >= '23:00:00' and time <= '24:00:00':
-        return 0
+        return 0 #late night
     if time >= '05:00:00' and time < '11:00:00':
-        return 1
+        return 1 #morning
     if time >= '11:00:00' and time < '17:00:00':
-        return 2
+        return 2 #day
     if time >= '17:00:00' and time < '23:00:00':
-        return 3
+        return 3 #night
 
+#runs the ride_time_distribution function for all drivers
 def categorize_time_all_drivers():
     zones_list = []
     for i, id in enumerate(driver_ids['driver_id']):
@@ -259,12 +255,6 @@ def categorize_time_all_drivers():
         zones_list.append(zones)
         print(i)
 
-
-
-
     rides_df = pd.DataFrame(data=zones_list, columns = ['Total Late Night', 'Total Morning', 'Total Day', 'Total Night', 'Percent Late Night', 'Percent Morning', 'Percent Day', 'Percent Night', 'Driver ID'])
     print(rides_df)
     rides_df.to_csv('ridetimecategorization.csv')
-
-
-categorize_time_all_drivers()
